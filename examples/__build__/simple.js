@@ -1,0 +1,1 @@
+(()=>{"use strict";var e,t,a,s,p;t=(e={method:"get",url:"/simple/get",params:{a:1,b:2}}).url,e.data,a=e.method,s=void 0===a?"get":a,(p=new XMLHttpRequest).open(s.toUpperCase(),t,!0),p.send()})();
