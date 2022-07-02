@@ -20,7 +20,7 @@
   },
   "scripts": {
     "dev": "nodemon examples/server.js",
-    "build:e": "cd examples && webpack --config webpack.config.js ",
+    "build:e": "npm run dev & cd examples && webpack --config webpack.config.js ",
     "lint": "tslint  --project tsconfig.json -t codeFrame 'src/**/*.ts' 'test/**/*.ts'",
     "prebuild": "rimraf dist",
     "build": "tsc --module commonjs && rollup -c rollup.config.ts && typedoc --out docs --target es6 --theme minimal --mode file src",

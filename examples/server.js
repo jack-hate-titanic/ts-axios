@@ -2,7 +2,7 @@
  * @Author: 悦者生存 1002783067@qq.com
  * @Date: 2022-06-26 20:06:13
  * @LastEditors: 悦者生存 1002783067@qq.com
- * @LastEditTime: 2022-06-26 21:57:55
+ * @LastEditTime: 2022-07-01 07:38:56
  * @FilePath: /ts-axios/examples/server.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -12,6 +12,7 @@ const path = require('path');
 const static = require('koa-static');
 const app = new Koa();
 const simple = new Router();
+const base = new Router();
 const router = new Router();
 
 simple.get('/get', ctx => {
@@ -21,7 +22,32 @@ simple.get('/get', ctx => {
   }
 })
 
+base.get('/get', ctx => {
+  ctx.response.type = 'json';
+  ctx.response.body = ctx.request.query;
+})
+
+base.post('/post', ctx => {
+  ctx.response.type = 'json';
+  ctx.response.body = ctx.request.body;
+})
+
+base.post('/buffer', ctx => {
+  let msg = [];
+  ctx.request.on('data', (chunk) => {
+    if (chunk) {
+      msg.push(chunk);
+    }
+  })
+  ctx.request.on('end', () => {
+    let buf = Buffer.concat(msg);
+    ctx.response.type = 'json';
+    ctx.response.body = buf.toJSON();
+  })
+})
+
 router.use('/simple', simple.routes(), simple.allowedMethods());
+router.use('/base', base.routes(), base.allowedMethods());
 
 app.use(router.routes()).use(router.allowedMethods());
 app.use(static(path.join(__dirname)));
