@@ -2,16 +2,76 @@
  * @Author: 悦者生存 1002783067@qq.com
  * @Date: 2022-07-02 21:34:30
  * @LastEditors: 悦者生存 1002783067@qq.com
- * @LastEditTime: 2022-07-02 21:34:39
+ * @LastEditTime: 2022-07-18 07:47:05
  * @FilePath: /ts-axios/src/core/Axios.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
-import { AxiosRequestConfig, AxiosPromise, Method } from '../types'
+import {
+  AxiosRequestConfig,
+  AxiosPromise,
+  Method,
+  AxiosResponse,
+  RejectedFn,
+  ResolvedFn
+} from '../types'
+import InterceptorManager from './InterceptorManager'
 import dispatchRequest from './dispatchRequest'
 
+interface Interceptors {
+  request: InterceptorManager<AxiosRequestConfig>
+  response: InterceptorManager<AxiosResponse>
+}
+
+interface PromiseChain {
+  resolved: ResolvedFn | ((config: AxiosRequestConfig) => AxiosPromise)
+  rejected?: RejectedFn
+}
+
 export default class Axios {
-  request(config: AxiosRequestConfig): AxiosPromise {
-    return dispatchRequest(config)
+  defaults: AxiosRequestConfig
+  interceptors: Interceptors
+
+  constructor(initConfig: AxiosRequestConfig) {
+    this.defaults = initConfig
+    this.interceptors = {
+      request: new InterceptorManager<AxiosRequestConfig>(),
+      response: new InterceptorManager<AxiosResponse>()
+    }
+  }
+
+  request(url: any, config?: any): AxiosPromise {
+    if (typeof url === 'string') {
+      if (!config) {
+        config = {}
+      }
+      config.url = url
+    } else {
+      config = url
+    }
+
+    const chain: PromiseChain[] = [
+      {
+        resolved: dispatchRequest,
+        rejected: undefined
+      }
+    ]
+
+    this.interceptors.request.forEach(interceptor => {
+      chain.unshift(interceptor)
+    })
+
+    this.interceptors.response.forEach(interceptor => {
+      chain.push(interceptor)
+    })
+
+    let promise = Promise.resolve(config)
+
+    while (chain.length) {
+      const { resolved, rejected } = chain.shift()!
+      promise = promise.then(resolved, rejected)
+    }
+
+    return promise
   }
 
   get(url: string, config?: AxiosRequestConfig): AxiosPromise {
