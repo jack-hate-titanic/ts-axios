@@ -1,13 +1,14 @@
 /*
  * @Author: your name
  * @Date: 2022-01-15 11:15:57
- * @LastEditTime: 2022-07-17 17:54:16
+ * @LastEditTime: 2022-07-17 18:21:39
  * @LastEditors: 悦者生存 1002783067@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /ts-axios/src/xhr.ts
  */
 import { AxiosRequestConfig, AxiosResponse, AxiosPromise } from '../types'
 import { parseHeaders } from '../helpers/headers'
+import { createError } from '../helpers/error'
 
 function xhr(config: AxiosRequestConfig): AxiosPromise {
   return new Promise((resolve, reject) => {
@@ -43,16 +44,26 @@ function xhr(config: AxiosRequestConfig): AxiosPromise {
       if (response.status >= 200 && response.status < 300) {
         resolve(response)
       } else {
-        reject(new Error(`Request failed with status code ${response.status}`))
+        reject(
+          createError(
+            `Request failed with status code ${response.status}`,
+            config,
+            null,
+            request,
+            response
+          )
+        )
       }
     }
 
     request.onerror = function handleError() {
-      reject(new Error('Network Error'))
+      reject(createError('Network Error', config, null, request))
     }
 
     request.ontimeout = function handleTimeout() {
-      reject(new Error(`Timeout of ${timeout} ms exceeded`))
+      reject(
+        createError(`Timeout of ${config.timeout} ms exceeded`, config, 'ECONNABORTED', request)
+      )
     }
 
     Object.keys(headers).forEach(name => {
