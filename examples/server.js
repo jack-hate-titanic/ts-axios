@@ -2,18 +2,25 @@
  * @Author: 悦者生存 1002783067@qq.com
  * @Date: 2022-06-26 20:06:13
  * @LastEditors: 悦者生存 1002783067@qq.com
- * @LastEditTime: 2022-07-01 07:38:56
+ * @LastEditTime: 2022-07-17 17:40:55
  * @FilePath: /ts-axios/examples/server.js
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
 const Koa = require('koa');
+const webpack = require('webpack');
 const Router = require('koa-router');
 const path = require('path');
 const static = require('koa-static');
+const koaWebpack = require('koa-webpack');
+const chalk = require('chalk');
+const bodyParser = require('koa-bodyparser');
+
 const app = new Koa();
 const simple = new Router();
 const base = new Router();
 const router = new Router();
+const config = require('./webpack.config');
+app.use(bodyParser());
 
 simple.get('/get', ctx => {
   ctx.response.type = 'json';
@@ -29,28 +36,31 @@ base.get('/get', ctx => {
 
 base.post('/post', ctx => {
   ctx.response.type = 'json';
+  console.log(ctx.request.body);
   ctx.response.body = ctx.request.body;
 })
 
-base.post('/buffer', ctx => {
-  let msg = [];
-  ctx.request.on('data', (chunk) => {
-    if (chunk) {
-      msg.push(chunk);
-    }
-  })
-  ctx.request.on('end', () => {
-    let buf = Buffer.concat(msg);
-    ctx.response.type = 'json';
-    ctx.response.body = buf.toJSON();
-  })
-})
 
 router.use('/simple', simple.routes(), simple.allowedMethods());
 router.use('/base', base.routes(), base.allowedMethods());
 
 app.use(router.routes()).use(router.allowedMethods());
-app.use(static(path.join(__dirname)));
-app.listen(3031, () => {
-  console.log('成功启动');
-})
+
+
+async function start() {
+  const compiler = webpack(config);
+  try { 
+    const middleware = await koaWebpack({
+      compiler
+    })
+    const port = process.env.PORT || 3000;
+    app.use(middleware)
+    app.use(static(path.join(__dirname)));
+    app.listen(port, () => {
+      console.log(chalk.red(`启动成功,端口号为${port}`));
+    })
+  } catch (e) {
+    console.log(chalk.red(e))
+  }
+}
+start();

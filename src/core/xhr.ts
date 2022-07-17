@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2022-01-15 11:15:57
- * @LastEditTime: 2022-07-02 21:37:19
+ * @LastEditTime: 2022-07-17 17:36:20
  * @LastEditors: 悦者生存 1002783067@qq.com
  * @Description: 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  * @FilePath: /ts-axios/src/xhr.ts
@@ -62,7 +62,8 @@ function xhr(config: AxiosRequestConfig): AxiosPromise {
         request.setRequestHeader(name, headers[name])
       }
     })
-    request.send()
+    console.log(data, 111)
+    request.send(data)
   })
 }
 
