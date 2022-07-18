@@ -2,7 +2,7 @@
  * @Author: 悦者生存 1002783067@qq.com
  * @Date: 2022-07-02 21:34:30
  * @LastEditors: 悦者生存 1002783067@qq.com
- * @LastEditTime: 2022-07-18 07:47:05
+ * @LastEditTime: 2022-07-18 08:10:20
  * @FilePath: /ts-axios/src/core/Axios.ts
  * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
  */
@@ -16,6 +16,7 @@ import {
 } from '../types'
 import InterceptorManager from './InterceptorManager'
 import dispatchRequest from './dispatchRequest'
+import mergeConfig from './mergeConfig'
 
 interface Interceptors {
   request: InterceptorManager<AxiosRequestConfig>
@@ -48,6 +49,8 @@ export default class Axios {
     } else {
       config = url
     }
+
+    config = mergeConfig(this.defaults, config)
 
     const chain: PromiseChain[] = [
       {
